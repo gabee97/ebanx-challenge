@@ -4,103 +4,63 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
+use App\Services\AccountService;
 
 class AccountController extends Controller
 {
-    private static $accounts = [];
+    private AccountService $accountService;
 
-    public function reset(): JsonResponse
+    public function __construct(AccountService $accountService)
     {
-        self::$accounts = [];
-        return response()->json([], 200);
+        $this->accountService = $accountService;
+    }
+
+    public function reset(): Response
+    {
+        $this->accountService->resetAccounts();
+        return response('OK', 200);
     }
 
     public function getBalance(Request $request): JsonResponse
     {
         $accountId = $request->query('account_id');
+        $balance = $this->accountService->getBalance($accountId);
 
-        if (!isset(self::$accounts[$accountId])) {
+        if ($balance === null) {
             return response()->json(0, 404);
         }
 
-        return response()->json(self::$accounts[$accountId], 200);
+        return response()->json($balance, 200);
     }
 
     public function postEvent(Request $request): JsonResponse
     {
-        $data = $request->all();
+        $data = $request->json()->all();
 
         if ($data['type'] === 'deposit') {
-            $destination = $data['destination'];
-            $amount = $data['amount'];
-
-            // Se a conta não existir, cria com saldo inicial
-            if (!isset(self::$accounts[$destination])) {
-                self::$accounts[$destination] = 0;
-            }
-
-            // Adiciona corretamente o saldo
-            self::$accounts[$destination] += $amount;
-
-            return response()->json([
-                "destination" => [
-                    "id" => (string) $destination,
-                    "balance" => self::$accounts[$destination]
-                ]
-            ], 201);
+            return response()->json(
+                $this->accountService->deposit($data['destination'], $data['amount']),
+                201
+            );
         }
 
         if ($data['type'] === 'withdraw') {
-            $origin = $data['origin'];
-            $amount = $data['amount'];
-
-            // Se a conta não existir ou saldo for insuficiente, erro
-            if (!isset(self::$accounts[$origin]) || self::$accounts[$origin] < $amount) {
+            $result = $this->accountService->withdraw($data['origin'], $data['amount']);
+            if (!$result) {
                 return response()->json(0, 404);
             }
-
-            // Subtrai o saldo corretamente
-            self::$accounts[$origin] -= $amount;
-
-            return response()->json([
-                "origin" => [
-                    "id" => (string) $origin,
-                    "balance" => self::$accounts[$origin]
-                ]
-            ], 201);
+            return response()->json($result, 201);
         }
 
         if ($data['type'] === 'transfer') {
-            $origin = $data['origin'];
-            $destination = $data['destination'];
-            $amount = $data['amount'];
-
-            // Se a conta de origem não existir ou não tiver saldo suficiente, erro
-            if (!isset(self::$accounts[$origin]) || self::$accounts[$origin] < $amount) {
+            $result = $this->accountService->transfer($data['origin'], $data['destination'], $data['amount']);
+            if (!$result) {
                 return response()->json(0, 404);
             }
-
-            // Se a conta de destino não existir, cria
-            if (!isset(self::$accounts[$destination])) {
-                self::$accounts[$destination] = 0;
-            }
-
-            // Faz a transferência corretamente
-            self::$accounts[$origin] -= $amount;
-            self::$accounts[$destination] += $amount;
-
-            return response()->json([
-                "origin" => [
-                    "id" => (string) $origin,
-                    "balance" => self::$accounts[$origin]
-                ],
-                "destination" => [
-                    "id" => (string) $destination,
-                    "balance" => self::$accounts[$destination]
-                ]
-            ], 201);
+            return response()->json($result, 201);
         }
 
-        return response()->json(["error" => "Invalid event type"], 400);
+        return response()->json([], 400);
     }
 }
