@@ -7,11 +7,12 @@ use Tests\TestCase;
 
 class AccountTest extends TestCase
 {
+    // Aqui reseta tudo antes de rodar os testes
     /** @before */
     public function setUpTest(): void
     {
         parent::setUp();
-        $this->postJson('/api/reset'); // Garante reset antes de cada teste
+        $this->postJson('/api/reset');
     }
 
     /** @test */
@@ -21,12 +22,14 @@ class AccountTest extends TestCase
         $response->assertStatus(200);
     }
 
+
     /** @test */
     public function it_returns_404_for_non_existing_account_balance()
     {
         $response = $this->getJson('/api/balance?account_id=1234');
         $response->assertStatus(404)->assertExactJson([0]);
     }
+
 
     /** @test */
     public function it_creates_an_account_with_initial_balance()
@@ -38,13 +41,14 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson([
-                     "destination" => [
-                         "id" => "100",
-                         "balance" => 10
-                     ]
-                 ]);
+                ->assertJson([
+                    "destination" => [
+                        "id" => "100",
+                        "balance" => 10
+                    ]
+                ]);
     }
+
 
     /** @test */
     public function it_deposits_into_an_existing_account()
@@ -62,13 +66,14 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson([
-                     "destination" => [
-                         "id" => "100",
-                         "balance" => 20
-                     ]
-                 ]);
+                ->assertJson([
+                    "destination" => [
+                        "id" => "100",
+                        "balance" => 20
+                    ]
+                ]);
     }
+
 
     /** @test */
     public function it_returns_balance_of_existing_account()
@@ -82,10 +87,11 @@ class AccountTest extends TestCase
         $response = $this->getJson('/api/balance?account_id=100');
 
         $response->assertStatus(200)
-                 ->assertExactJson([10]);
+                ->assertExactJson([10]);
     }
 
-    /** @test */
+
+   /** @test */
     public function it_returns_404_when_withdrawing_from_non_existing_account()
     {
         $response = $this->postJson('/api/event', [
@@ -95,7 +101,7 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(404)
-                 ->assertExactJson([0]);
+                ->assertExactJson([0]);
     }
 
     /** @test */
@@ -114,12 +120,12 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson([
-                     "origin" => [
-                         "id" => "100",
-                         "balance" => 5
-                     ]
-                 ]);
+                ->assertJson([
+                    "origin" => [
+                        "id" => "100",
+                        "balance" => 5
+                    ]
+                ]);
     }
 
     /** @test */
@@ -139,17 +145,18 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJson([
-                     "origin" => [
-                         "id" => "100",
-                         "balance" => 0
-                     ],
-                     "destination" => [
-                         "id" => "300",
-                         "balance" => 15
-                     ]
-                 ]);
+                ->assertJson([
+                    "origin" => [
+                        "id" => "100",
+                        "balance" => 0
+                    ],
+                    "destination" => [
+                        "id" => "300",
+                        "balance" => 15
+                    ]
+                ]);
     }
+
 
     /** @test */
     public function it_returns_404_when_transferring_from_non_existing_account()
@@ -162,7 +169,7 @@ class AccountTest extends TestCase
         ]);
 
         $response->assertStatus(404)
-                 ->assertExactJson([0]);
+                ->assertExactJson([0]);
     }
 }
 
