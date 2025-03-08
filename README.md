@@ -64,7 +64,3 @@ Caso tenha alguma dúvida ou sugestão, fico à disposição!
 ✉ **[gaabriel123@hotmail.com](mailto:gaabriel123@hotmail.com)**  
 💼 **[LinkedIn - Gabriel Oliveira](https://www.linkedin.com/in/gabriel-oliveira-gop1997/)**  
 🚀 **Desenvolvido por Gabriel Oliveira**  
-
----
-
-✔ **Agora o `README.md` está limpo, bem formatado e pronto para ser enviado!** 🚀🔥  
